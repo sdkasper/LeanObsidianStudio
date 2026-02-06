@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Lean Obsidian Studio - Bases Builder</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600&family=Unbounded:wght@400;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="grain"></div>
+    <div class="page">
+      <header class="hero">
+        <div class="hero-top">
+          <p class="logo">Lean Obsidian Studio</p>
+          <nav class="pill-nav">
+            <button class="pill" type="button">Templates</button>
+            <button class="pill active" type="button">Bases</button>
+            <button class="pill" type="button">CSS</button>
+            <button class="pill" type="button">Vaults</button>
+          </nav>
+        </div>
+        <h1>Lean Obsidian Studio</h1>
+        <p class="tagline">Your tailor-made Obsidian setup — no coding, no friction.</p>
+        <div class="hero-sub">
+          <p>Find the right notes instantly.</p>
+          <p>Create dynamic views that adapt to your workflow.</p>
+        </div>
+      </header>
+
+      <section class="ideas">
+        <h2>Start with an Idea...</h2>
+        <div class="idea-grid">
+          <button class="idea-card" data-template="progress">
+            <span>Project Progress Bar</span>
+            <p>Visual progress bars for tasks or projects.</p>
+          </button>
+          <button class="idea-card" data-template="ratings">
+            <span>Star Ratings Table</span>
+            <p>Elegant star ratings using the icon function.</p>
+          </button>
+          <button class="idea-card" data-template="travel">
+            <span>Travel Trip Map</span>
+            <p>Plot your adventures on an interactive map.</p>
+          </button>
+          <button class="idea-card" data-template="birthday">
+            <span>Birthday Tracker</span>
+            <p>Never miss a birthday with automated calculations.</p>
+          </button>
+          <button class="idea-card" data-template="cleanup">
+            <span>Vault Cleaner</span>
+            <p>Identify untagged or messy notes in your vault.</p>
+          </button>
+          <button class="idea-card" data-template="summary">
+            <span>Content Summary</span>
+            <p>Aggregate data with custom summary functions.</p>
+          </button>
+        </div>
+      </section>
+
+      <section class="builder">
+        <div class="builder-panel">
+          <div class="panel-header">
+            <h3>Base Blueprint</h3>
+            <span>Describe the query you want.</span>
+          </div>
+          <textarea
+            id="prompt"
+            placeholder="Describe the query you want. For example: A cards view of recipes with ratings and images."
+          ></textarea>
+          <div class="panel-footer">
+            <button class="primary" id="generate" type="button">
+              <span class="icon">⛁</span>
+              Generate my Base
+            </button>
+            <button class="ghost" id="copy" type="button">Copy YAML</button>
+          </div>
+        </div>
+        <div class="output-panel">
+          <div class="output-header">
+            <h3>Generated Base</h3>
+            <span>Ready for .base</span>
+          </div>
+          <pre id="output" aria-live="polite">
+Your generated Base query will appear here.
+          </pre>
+        </div>
+      </section>
+
+      <footer>
+        <span>Version 0.1.4</span>
+        <span>© Lean Obsidian Studio.</span>
+        <button class="feedback" type="button">Feedback</button>
+      </footer>
+    </div>
+    <div class="toast" id="toast" role="status" aria-live="polite">Copied to clipboard.</div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
