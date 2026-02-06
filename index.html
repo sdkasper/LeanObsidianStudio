@@ -6,7 +6,7 @@
   <title>Lean Obsidian Studio</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -23,19 +23,11 @@
     <p>Create dynamic views that adapt to your workflow.</p>
   </section>
 
-  <!-- Navigation Tabs -->
-  <nav class="tabs">
-    <button class="tabs__btn" data-tab="templates">Templates</button>
-    <button class="tabs__btn tabs__btn--active" data-tab="bases">Bases</button>
-    <button class="tabs__btn" data-tab="css">CSS</button>
-    <button class="tabs__btn" data-tab="vaults">Vaults</button>
-  </nav>
-
   <!-- Main Content -->
   <main class="main">
 
     <!-- Template Cards -->
-    <section class="templates">
+    <section class="templates" id="templatesSection">
       <h2 class="templates__heading">Start with an Idea...</h2>
       <div class="templates__grid">
 
@@ -75,7 +67,13 @@
     <!-- Blueprint Section -->
     <section class="blueprint">
       <div class="blueprint__input">
-        <h3 class="blueprint__title">Base Blueprint</h3>
+        <div class="blueprint__title-row">
+          <h3 class="blueprint__title" id="blueprintTitle">Base Blueprint</h3>
+          <button class="blueprint__reset" id="resetBtn" style="display:none;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+            Reset
+          </button>
+        </div>
         <textarea
           id="queryInput"
           class="blueprint__textarea"
@@ -83,7 +81,7 @@
         ></textarea>
         <button id="generateBtn" class="blueprint__btn">
           <svg class="blueprint__btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
-          Generate my Base
+          <span id="generateLabel">Generate my Base</span>
         </button>
       </div>
 
@@ -93,11 +91,17 @@
         </div>
         <div class="blueprint__result" id="outputResult" style="display:none;">
           <div class="blueprint__result-header">
-            <span class="blueprint__result-label">Generated .base file</span>
-            <button class="blueprint__copy-btn" id="copyBtn" title="Copy to clipboard">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-              <span id="copyLabel">Copy</span>
-            </button>
+            <h3 class="blueprint__result-label">Base Generated</h3>
+            <div class="blueprint__actions">
+              <button class="blueprint__action-btn" id="copyBtn" title="Copy to clipboard">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+                <span id="copyLabel">Copy</span>
+              </button>
+              <button class="blueprint__action-btn" id="downloadBtn" title="Download .base file">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download .base
+              </button>
+            </div>
           </div>
           <pre class="blueprint__code"><code id="outputCode"></code></pre>
         </div>
@@ -110,7 +114,7 @@
   <footer class="footer">
     <span class="footer__version">Version 0.1.4</span>
     <span class="footer__copy">&copy; Lean Obsidian Studio.</span>
-    <a href="#" class="footer__feedback" id="feedbackBtn">Feedback</a>
+    <a href="https://forms.cloud.microsoft/r/7h7c05F7PU" target="_blank" rel="noopener noreferrer" class="footer__feedback" id="feedbackBtn">Feedback</a>
   </footer>
 
   <script src="templates.js"></script>
