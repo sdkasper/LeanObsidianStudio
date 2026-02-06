@@ -23,50 +23,53 @@
     <p>Create dynamic views that adapt to your workflow.</p>
   </section>
 
+  <!-- Mode Toggle -->
+  <nav class="mode-toggle">
+    <button class="mode-toggle__btn mode-toggle__btn--active" data-mode="chat">Chat</button>
+    <button class="mode-toggle__btn" data-mode="configurator">Configurator</button>
+  </nav>
+
   <!-- Main Content -->
   <main class="main">
 
-    <!-- Template Cards -->
+    <!-- ========== CHAT MODE ========== -->
+
+    <!-- Template Cards (chat mode only) -->
     <section class="templates" id="templatesSection">
       <h2 class="templates__heading">Start with an Idea...</h2>
       <div class="templates__grid">
-
         <button class="card" data-template="progress">
           <h3 class="card__title">Project Progress Bar</h3>
           <p class="card__desc">Visual progress bars for tasks or projects.</p>
         </button>
-
         <button class="card" data-template="ratings">
           <h3 class="card__title">Star Ratings Table</h3>
           <p class="card__desc">Elegant star ratings using the icon function.</p>
         </button>
-
         <button class="card" data-template="map">
           <h3 class="card__title">Travel Trip Map</h3>
           <p class="card__desc">Plot your adventures on an interactive map.</p>
         </button>
-
         <button class="card" data-template="birthday">
           <h3 class="card__title">Birthday Tracker</h3>
           <p class="card__desc">Never miss a birthday with automated calculations.</p>
         </button>
-
         <button class="card" data-template="cleaner">
           <h3 class="card__title">Vault Cleaner</h3>
           <p class="card__desc">Identify untagged or messy notes in your vault.</p>
         </button>
-
         <button class="card" data-template="summary">
           <h3 class="card__title">Content Summary</h3>
           <p class="card__desc">Aggregate custom summary functions.</p>
         </button>
-
       </div>
     </section>
 
     <!-- Blueprint Section -->
     <section class="blueprint">
-      <div class="blueprint__input">
+
+      <!-- Left: Chat input (visible in chat mode) -->
+      <div class="blueprint__input" id="chatPanel">
         <div class="blueprint__title-row">
           <h3 class="blueprint__title" id="blueprintTitle">Base Blueprint</h3>
           <button class="blueprint__reset" id="resetBtn" style="display:none;">
@@ -85,6 +88,148 @@
         </button>
       </div>
 
+      <!-- Left: Configurator form (visible in configurator mode) -->
+      <div class="config" id="configuratorPanel" style="display:none;">
+
+        <!-- Source Filters -->
+        <div class="config__section">
+          <h4 class="config__heading">Source Filters</h4>
+          <div class="config__field">
+            <label class="config__label" for="cfgTags">Tags</label>
+            <input type="text" class="config__input" id="cfgTags" placeholder="project, task">
+          </div>
+          <div class="config__field">
+            <label class="config__label" for="cfgFolder">Folder</label>
+            <input type="text" class="config__input" id="cfgFolder" placeholder="Projects/Active">
+          </div>
+          <div class="config__field">
+            <label class="config__label" for="cfgFilterLogic">Logic</label>
+            <select class="config__select" id="cfgFilterLogic">
+              <option value="and">AND &mdash; all must match</option>
+              <option value="or">OR &mdash; any can match</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- View Settings -->
+        <div class="config__section">
+          <h4 class="config__heading">View</h4>
+          <div class="config__row">
+            <div class="config__field config__field--grow">
+              <label class="config__label" for="cfgViewType">Type</label>
+              <select class="config__select" id="cfgViewType">
+                <option value="table">Table</option>
+                <option value="cards">Cards</option>
+                <option value="list">List</option>
+                <option value="map">Map</option>
+              </select>
+            </div>
+            <div class="config__field config__field--grow">
+              <label class="config__label" for="cfgViewName">Name</label>
+              <input type="text" class="config__input" id="cfgViewName" placeholder="My View">
+            </div>
+          </div>
+          <div class="config__field">
+            <label class="config__label" for="cfgLimit">Limit Results</label>
+            <input type="number" class="config__input" id="cfgLimit" placeholder="No limit" min="1">
+          </div>
+        </div>
+
+        <!-- Display Columns -->
+        <div class="config__section">
+          <h4 class="config__heading">Display Columns</h4>
+          <div class="config__chips" id="cfgFileProps">
+            <label class="config__chip"><input type="checkbox" value="file.name" checked> file.name</label>
+            <label class="config__chip"><input type="checkbox" value="file.folder"> file.folder</label>
+            <label class="config__chip"><input type="checkbox" value="file.tags"> file.tags</label>
+            <label class="config__chip"><input type="checkbox" value="file.size"> file.size</label>
+            <label class="config__chip"><input type="checkbox" value="file.ctime"> file.ctime</label>
+            <label class="config__chip"><input type="checkbox" value="file.mtime"> file.mtime</label>
+            <label class="config__chip"><input type="checkbox" value="file.links"> file.links</label>
+            <label class="config__chip"><input type="checkbox" value="file.backlinks"> file.backlinks</label>
+          </div>
+          <div class="config__field">
+            <label class="config__label" for="cfgCustomProps">Note Properties</label>
+            <input type="text" class="config__input" id="cfgCustomProps" placeholder="status, priority, due_date">
+          </div>
+        </div>
+
+        <!-- Sort & Group -->
+        <div class="config__section">
+          <h4 class="config__heading">Sort &amp; Group</h4>
+          <div class="config__row">
+            <div class="config__field config__field--grow">
+              <label class="config__label" for="cfgSortBy">Sort By</label>
+              <input type="text" class="config__input" id="cfgSortBy" placeholder="file.name">
+            </div>
+            <div class="config__field config__field--shrink">
+              <label class="config__label" for="cfgSortDir">Dir</label>
+              <select class="config__select" id="cfgSortDir">
+                <option value="">&mdash;</option>
+                <option value="ASC">ASC</option>
+                <option value="DESC">DESC</option>
+              </select>
+            </div>
+          </div>
+          <div class="config__row">
+            <div class="config__field config__field--grow">
+              <label class="config__label" for="cfgGroupBy">Group By</label>
+              <input type="text" class="config__input" id="cfgGroupBy" placeholder="status">
+            </div>
+            <div class="config__field config__field--shrink">
+              <label class="config__label" for="cfgGroupDir">Dir</label>
+              <select class="config__select" id="cfgGroupDir">
+                <option value="">&mdash;</option>
+                <option value="ASC">ASC</option>
+                <option value="DESC">DESC</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- Formulas -->
+        <div class="config__section">
+          <h4 class="config__heading">Formulas <span class="config__optional">optional</span></h4>
+          <div id="cfgFormulaRows"></div>
+          <button class="config__add-btn" id="cfgAddFormula" type="button">+ Add Formula</button>
+        </div>
+
+        <!-- Summaries -->
+        <div class="config__section">
+          <h4 class="config__heading">Summaries <span class="config__optional">optional</span></h4>
+          <div id="cfgSummaryRows"></div>
+          <button class="config__add-btn" id="cfgAddSummary" type="button">+ Add Summary</button>
+        </div>
+
+        <!-- Generate -->
+        <button class="blueprint__btn config__generate-btn" id="cfgGenerateBtn" type="button">
+          <svg class="blueprint__btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          <span id="cfgGenerateLabel">Generate my Base</span>
+        </button>
+
+        <!-- Fine-tune chat (visible after configurator generation) -->
+        <div class="config__finetune" id="cfgFinetune" style="display:none;">
+          <div class="config__finetune-header">
+            <h4 class="config__heading">Fine-tune with Chat</h4>
+            <button class="blueprint__reset" id="cfgResetBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+              Reset
+            </button>
+          </div>
+          <textarea
+            class="blueprint__textarea config__finetune-textarea"
+            id="cfgChatInput"
+            placeholder="e.g., Add a progress bar formula..."
+          ></textarea>
+          <button class="blueprint__btn" id="cfgChatBtn" type="button">
+            <svg class="blueprint__btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            Update Base
+          </button>
+        </div>
+
+      </div>
+
+      <!-- Right: Shared output panel -->
       <div class="blueprint__output" id="outputPanel">
         <div class="blueprint__placeholder" id="outputPlaceholder">
           <p>Your generated Base query will appear here.</p>
@@ -106,6 +251,7 @@
           <pre class="blueprint__code"><code id="outputCode"></code></pre>
         </div>
       </div>
+
     </section>
 
   </main>
@@ -118,6 +264,7 @@
   </footer>
 
   <script src="templates.js"></script>
+  <script src="configurator.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
