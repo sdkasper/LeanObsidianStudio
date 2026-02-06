@@ -85,7 +85,6 @@
     queryInput.value = "";
     queryInput.placeholder = "e.g., Change the bar color or add a summary.";
     generateLabel.textContent = "Update Base";
-    generateBtn.classList.add("blueprint__btn--solid");
   }
 
   // ------------------------------------------------
@@ -100,7 +99,6 @@
     queryInput.value = "";
     queryInput.placeholder = "Describe the query you want.";
     generateLabel.textContent = "Generate my Base";
-    generateBtn.classList.remove("blueprint__btn--solid");
 
     // Clear selection
     selectedTemplate = null;

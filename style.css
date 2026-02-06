@@ -23,16 +23,14 @@
   --accent: #22d3ee;
   --accent-dim: rgba(34, 211, 238, 0.1);
   --accent-hover: #67e8f9;
-  --accent-solid-bg: #22d3ee;
-  --accent-solid-hover: #67e8f9;
   --btn-bg: #0f1d30;
   --btn-hover: #162742;
   --success: #4ade80;
   --danger: #f87171;
   --radius: 8px;
   --radius-lg: 12px;
-  --font-body: 'Outfit', system-ui, -apple-system, sans-serif;
-  --font-mono: 'Fira Code', 'DM Mono', 'Consolas', monospace;
+  --font-body: 'JetBrains Mono', 'Consolas', monospace;
+  --font-mono: 'JetBrains Mono', 'Consolas', monospace;
 }
 
 html {
@@ -223,7 +221,7 @@ body {
   padding: 0.7rem 1.75rem;
   background: var(--btn-bg);
   border: 1px solid var(--accent);
-  border-radius: 999px;
+  border-radius: var(--radius);
   color: var(--accent);
   font-family: var(--font-body);
   font-size: 0.92rem;
@@ -241,19 +239,6 @@ body {
 
 .blueprint__btn:active {
   transform: translateY(0);
-}
-
-.blueprint__btn--solid {
-  background: var(--accent-solid-bg);
-  color: var(--bg-primary);
-  border-color: var(--accent-solid-bg);
-}
-
-.blueprint__btn--solid:hover {
-  background: var(--accent-solid-hover);
-  border-color: var(--accent-solid-hover);
-  color: var(--bg-primary);
-  box-shadow: 0 0 22px rgba(34, 211, 238, 0.25);
 }
 
 .blueprint__btn-icon {
