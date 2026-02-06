@@ -8,26 +8,21 @@
   // --- DOM refs ---
   const queryInput = document.getElementById("queryInput");
   const generateBtn = document.getElementById("generateBtn");
+  const generateLabel = document.getElementById("generateLabel");
+  const blueprintTitle = document.getElementById("blueprintTitle");
+  const resetBtn = document.getElementById("resetBtn");
   const outputPlaceholder = document.getElementById("outputPlaceholder");
   const outputResult = document.getElementById("outputResult");
   const outputCode = document.getElementById("outputCode");
   const outputPanel = document.getElementById("outputPanel");
   const copyBtn = document.getElementById("copyBtn");
   const copyLabel = document.getElementById("copyLabel");
+  const downloadBtn = document.getElementById("downloadBtn");
   const cards = document.querySelectorAll(".card[data-template]");
-  const tabs = document.querySelectorAll(".tabs__btn");
+  const templatesSection = document.getElementById("templatesSection");
 
   let selectedTemplate = null;
-
-  // ------------------------------------------------
-  // Tab switching (cosmetic only — single-page app)
-  // ------------------------------------------------
-  tabs.forEach((tab) => {
-    tab.addEventListener("click", () => {
-      tabs.forEach((t) => t.classList.remove("tabs__btn--active"));
-      tab.classList.add("tabs__btn--active");
-    });
-  });
+  let hasGenerated = false;
 
   // ------------------------------------------------
   // Template card selection
@@ -75,6 +70,50 @@
     }
 
     showOutput(yaml);
+    enterGeneratedState();
+  });
+
+  // ------------------------------------------------
+  // Post-generate state: update UI labels
+  // ------------------------------------------------
+  function enterGeneratedState() {
+    if (hasGenerated) return;
+    hasGenerated = true;
+
+    blueprintTitle.textContent = "Modify Your Base";
+    resetBtn.style.display = "inline-flex";
+    queryInput.value = "";
+    queryInput.placeholder = "e.g., Change the bar color or add a summary.";
+    generateLabel.textContent = "Update Base";
+    generateBtn.classList.add("blueprint__btn--solid");
+  }
+
+  // ------------------------------------------------
+  // Reset: restore initial state
+  // ------------------------------------------------
+  resetBtn.addEventListener("click", () => {
+    hasGenerated = false;
+
+    // Restore input panel
+    blueprintTitle.textContent = "Base Blueprint";
+    resetBtn.style.display = "none";
+    queryInput.value = "";
+    queryInput.placeholder = "Describe the query you want.";
+    generateLabel.textContent = "Generate my Base";
+    generateBtn.classList.remove("blueprint__btn--solid");
+
+    // Clear selection
+    selectedTemplate = null;
+    cards.forEach((c) => c.classList.remove("card--selected"));
+
+    // Hide output
+    outputPlaceholder.style.display = "flex";
+    outputResult.style.display = "none";
+    outputPanel.classList.remove("blueprint__output--filled");
+    outputCode.textContent = "";
+
+    // Show templates again
+    templatesSection.style.display = "";
   });
 
   // ------------------------------------------------
@@ -177,12 +216,30 @@ views:
 
     navigator.clipboard.writeText(text).then(() => {
       copyLabel.textContent = "Copied!";
-      copyBtn.classList.add("blueprint__copy-btn--copied");
+      copyBtn.classList.add("blueprint__action-btn--success");
       setTimeout(() => {
         copyLabel.textContent = "Copy";
-        copyBtn.classList.remove("blueprint__copy-btn--copied");
+        copyBtn.classList.remove("blueprint__action-btn--success");
       }, 2000);
     });
+  });
+
+  // ------------------------------------------------
+  // Download .base file
+  // ------------------------------------------------
+  downloadBtn.addEventListener("click", () => {
+    const text = outputCode.textContent;
+    if (!text) return;
+
+    const blob = new Blob([text], { type: "text/yaml" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "query.base";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   });
 
   // ------------------------------------------------
