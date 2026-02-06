@@ -15,18 +15,18 @@
   --bg-card: #151d2e;
   --bg-input: #0d1220;
   --border: #1e2d44;
-  --border-accent: #22d3ee;
+  --border-accent: #25D0F7;
   --border-dashed: #283a54;
   --text-primary: #cbd5e1;
   --text-secondary: #64748b;
   --text-heading: #e2e8f0;
-  --accent: #22d3ee;
-  --accent-dim: rgba(34, 211, 238, 0.1);
-  --accent-hover: #67e8f9;
+  --accent: #25D0F7;
+  --accent-dim: rgba(37, 208, 247, 0.1);
+  --accent-hover: #25D0F7;
   --btn-bg: #0f1d30;
   --btn-hover: #162742;
-  --success: #4ade80;
-  --danger: #f87171;
+  --success: #18BC9C;
+  --danger: #FC3634;
   --radius: 8px;
   --radius-lg: 12px;
   --font-body: 'JetBrains Mono', 'Consolas', monospace;
@@ -116,13 +116,13 @@ body {
 
 .card:hover {
   border-color: var(--border-accent);
-  box-shadow: 0 0 16px rgba(34, 211, 238, 0.08);
+  box-shadow: 0 0 16px rgba(37, 208, 247, 0.08);
   transform: translateY(-2px);
 }
 
 .card--selected {
   border-color: var(--accent);
-  box-shadow: 0 0 20px rgba(34, 211, 238, 0.15);
+  box-shadow: 0 0 20px rgba(37, 208, 247, 0.15);
 }
 
 .card__title {
@@ -233,7 +233,7 @@ body {
 
 .blueprint__btn:hover {
   background: var(--btn-hover);
-  box-shadow: 0 0 18px rgba(34, 211, 238, 0.15);
+  box-shadow: 0 0 18px rgba(37, 208, 247, 0.15);
   transform: translateY(-1px);
 }
 
@@ -374,7 +374,7 @@ body {
 }
 
 .footer__feedback:hover {
-  background: rgba(248, 113, 113, 0.1);
+  background: rgba(252, 54, 52, 0.1);
 }
 
 /* --- Animations --- */
