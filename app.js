@@ -25,6 +25,33 @@
   let hasGenerated = false;
 
   // ------------------------------------------------
+  // Reset to initial state
+  // ------------------------------------------------
+  function resetToInitial() {
+    hasGenerated = false;
+
+    // Restore input panel
+    blueprintTitle.textContent = "Base Blueprint";
+    resetBtn.style.display = "none";
+    queryInput.value = "";
+    queryInput.placeholder = "Describe the query you want.";
+    generateLabel.textContent = "Generate my Base";
+
+    // Clear selection
+    selectedTemplate = null;
+    cards.forEach((c) => c.classList.remove("card--selected"));
+
+    // Hide output
+    outputPlaceholder.style.display = "flex";
+    outputResult.style.display = "none";
+    outputPanel.classList.remove("blueprint__output--filled");
+    outputCode.textContent = "";
+
+    // Show templates
+    templatesSection.style.display = "";
+  }
+
+  // ------------------------------------------------
   // Template card selection
   // ------------------------------------------------
   cards.forEach((card) => {
@@ -33,17 +60,13 @@
       const tpl = TEMPLATES[key];
       if (!tpl) return;
 
-      // Toggle selection
-      if (selectedTemplate === key) {
-        card.classList.remove("card--selected");
-        selectedTemplate = null;
-        queryInput.value = "";
-      } else {
-        cards.forEach((c) => c.classList.remove("card--selected"));
-        card.classList.add("card--selected");
-        selectedTemplate = key;
-        queryInput.value = tpl.description;
-      }
+      // Always reset to a clean slate first
+      resetToInitial();
+
+      // Then select this card and fill description
+      card.classList.add("card--selected");
+      selectedTemplate = key;
+      queryInput.value = tpl.description;
     });
   });
 
@@ -88,31 +111,9 @@
   }
 
   // ------------------------------------------------
-  // Reset: restore initial state
+  // Reset button
   // ------------------------------------------------
-  resetBtn.addEventListener("click", () => {
-    hasGenerated = false;
-
-    // Restore input panel
-    blueprintTitle.textContent = "Base Blueprint";
-    resetBtn.style.display = "none";
-    queryInput.value = "";
-    queryInput.placeholder = "Describe the query you want.";
-    generateLabel.textContent = "Generate my Base";
-
-    // Clear selection
-    selectedTemplate = null;
-    cards.forEach((c) => c.classList.remove("card--selected"));
-
-    // Hide output
-    outputPlaceholder.style.display = "flex";
-    outputResult.style.display = "none";
-    outputPanel.classList.remove("blueprint__output--filled");
-    outputCode.textContent = "";
-
-    // Show templates again
-    templatesSection.style.display = "";
-  });
+  resetBtn.addEventListener("click", resetToInitial);
 
   // ------------------------------------------------
   // Keyword matcher
