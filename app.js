@@ -25,6 +25,25 @@
   let hasGenerated = false;
   let inputFromCard = false; // true when textarea was populated by a card click
 
+  // Map well-known names to Bases property paths (shared by build & update).
+  const PROP_MAP = {
+    "file name": "file.name",
+    filename: "file.name",
+    name: "file.name",
+    "file size": "file.size",
+    size: "file.size",
+    folder: "file.folder",
+    "file folder": "file.folder",
+    created: "file.ctime",
+    "creation date": "file.ctime",
+    modified: "file.mtime",
+    "modification date": "file.mtime",
+    tags: "file.tags",
+    links: "file.links",
+    extension: "file.ext",
+    ext: "file.ext",
+  };
+
   // ------------------------------------------------
   // Reset to initial state
   // ------------------------------------------------
@@ -82,12 +101,17 @@
 
     let yaml = null;
 
-    // 1. Card selected AND text unchanged → use the template directly.
-    if (
+    // --- Update mode: modify the existing query ---
+    if (hasGenerated) {
+      yaml = updateExistingBase(outputCode.textContent, input);
+    }
+    // --- First generation ---
+    else if (
       selectedTemplate &&
       TEMPLATES[selectedTemplate] &&
       input === TEMPLATES[selectedTemplate].description
     ) {
+      // Card selected AND text unchanged → use the template directly.
       yaml = TEMPLATES[selectedTemplate].yaml;
     } else {
       // Clear stale card selection.
@@ -96,14 +120,14 @@
         cards.forEach((c) => c.classList.remove("card--selected"));
       }
 
-      // 2. If the user typed from scratch (no card involved), try keyword matching.
-      //    Skip keyword matching when the user edited a card's text, because keywords
-      //    from the original description would match back to the same template.
+      // If the user typed from scratch (no card involved), try keyword matching.
+      // Skip keyword matching when the user edited a card's text, because keywords
+      // from the original description would match back to the same template.
       if (!inputFromCard) {
         yaml = matchByKeywords(input);
       }
 
-      // 3. Build from the user's actual text.
+      // Build from the user's actual text.
       if (!yaml) {
         yaml = buildFallbackBase(input);
       }
@@ -111,6 +135,9 @@
 
     showOutput(yaml);
     enterGeneratedState();
+
+    // Clear textarea after update so user can type the next modification.
+    queryInput.value = "";
   });
 
   // ------------------------------------------------
@@ -204,25 +231,6 @@
       quotedProps.push(val);
     }
 
-    // Map well-known names to Bases property paths
-    const PROP_MAP = {
-      "file name": "file.name",
-      "filename": "file.name",
-      "name": "file.name",
-      "file size": "file.size",
-      "size": "file.size",
-      "folder": "file.folder",
-      "file folder": "file.folder",
-      "created": "file.ctime",
-      "creation date": "file.ctime",
-      "modified": "file.mtime",
-      "modification date": "file.mtime",
-      "tags": "file.tags",
-      "links": "file.links",
-      "extension": "file.ext",
-      "ext": "file.ext",
-    };
-
     const orderProps = quotedProps.map(
       (p) => PROP_MAP[p.toLowerCase()] || p
     );
@@ -281,6 +289,129 @@
       yaml += `\n    groupBy:`;
       yaml += `\n      property: ${groupProp}`;
       yaml += `\n      direction: ASC`;
+    }
+
+    return yaml;
+  }
+
+  // ------------------------------------------------
+  // Update an existing YAML base using a modification prompt
+  // ------------------------------------------------
+  function updateExistingBase(currentYaml, prompt) {
+    let yaml = currentYaml;
+    const lower = prompt.toLowerCase();
+
+    // --- Change / add tag filter ---
+    const tagMatch = prompt.match(/#(\w[\w-/]*)/);
+    if (tagMatch) {
+      const newTag = tagMatch[1];
+      if (/file\.hasTag\(/.test(yaml)) {
+        yaml = yaml.replace(/file\.hasTag\("[^"]*"\)/, `file.hasTag("${newTag}")`);
+      } else {
+        yaml = yaml.replace(
+          /(filters:\n\s+and:\n)/,
+          `$1    - 'file.hasTag("${newTag}")'\n`
+        );
+      }
+    }
+
+    // --- Change / add folder filter ---
+    const folderMatch = prompt.match(/(?:folder|in)\s+["']?(\w[\w\s/]*)["']?/i);
+    if (folderMatch) {
+      const newFolder = folderMatch[1].trim();
+      if (/file\.inFolder\(/.test(yaml)) {
+        yaml = yaml.replace(/file\.inFolder\("[^"]*"\)/, `file.inFolder("${newFolder}")`);
+      } else {
+        yaml = yaml.replace(
+          /(filters:\n\s+and:\n)/,
+          `$1    - 'file.inFolder("${newFolder}")'\n`
+        );
+      }
+    }
+
+    // --- Change view type ---
+    let newViewType = null;
+    if (/\bcards?\s+view\b|\bview\b.*\bcards?\b|\bto\s+cards?\b|\bas\s+cards?\b/.test(lower)) {
+      newViewType = "cards";
+    } else if (/\btable\s+view\b|\bview\b.*\btable\b|\bto\s+table\b|\bas\s+table\b/.test(lower)) {
+      newViewType = "table";
+    } else if (/\blist\s+view\b|\bview\b.*\blist\b|\bto\s+list\b|\bas\s+list\b/.test(lower)) {
+      newViewType = "list";
+    } else if (/\bmap\s+view\b|\bview\b.*\bmap\b|\bto\s+map\b|\bas\s+map\b/.test(lower)) {
+      newViewType = "map";
+    }
+    if (newViewType) {
+      yaml = yaml.replace(/type: \w+/, `type: ${newViewType}`);
+    }
+
+    // --- Add property / column ---
+    const addMatch =
+      prompt.match(/add\s+(?:(?:a|the)\s+)?(?:property|column|field)?\s*["']([^"']+)["']/i) ||
+      prompt.match(/add\s+(?:(?:a|the)\s+)?(?:property|column|field)\s+(\w[\w\s]*)/i);
+    if (addMatch) {
+      const raw = addMatch[1].trim();
+      const mapped = PROP_MAP[raw.toLowerCase()] || raw;
+      // Append after the last item in the first order block.
+      yaml = yaml.replace(
+        /(order:\n(?:\s+- [^\n]+\n)*\s+- [^\n]+)/,
+        `$1\n      - ${mapped}`
+      );
+    }
+
+    // --- Remove property / column ---
+    const removeMatch =
+      prompt.match(/remove\s+(?:(?:a|the)\s+)?(?:property|column|field)?\s*["']([^"']+)["']/i) ||
+      prompt.match(/remove\s+(?:(?:a|the)\s+)?(?:property|column|field)\s+(\w[\w\s]*)/i);
+    if (removeMatch) {
+      const raw = removeMatch[1].trim();
+      const mapped = PROP_MAP[raw.toLowerCase()] || raw;
+      const escaped = mapped.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      yaml = yaml.replace(new RegExp(`\\n\\s+- ${escaped}`, ""), "");
+    }
+
+    // --- Sort ---
+    const sortMatch = prompt.match(/sort(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
+    if (sortMatch) {
+      const raw = sortMatch[1].trim();
+      const prop = PROP_MAP[raw.toLowerCase()] || raw;
+      const dir = /\bdesc/i.test(prompt) ? "DESC" : "ASC";
+      if (/\n\s+sort:/.test(yaml)) {
+        yaml = yaml.replace(
+          /sort:\n\s+- property: [^\n]+\n\s+direction: \w+/,
+          `sort:\n      - property: ${prop}\n        direction: ${dir}`
+        );
+      } else {
+        yaml = yaml.replace(
+          /(order:\n(?:\s+- [^\n]+\n)*\s+- [^\n]+)/,
+          `$1\n    sort:\n      - property: ${prop}\n        direction: ${dir}`
+        );
+      }
+    }
+
+    // --- Group by ---
+    const groupMatch = prompt.match(/group(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
+    if (groupMatch) {
+      const raw = groupMatch[1].trim();
+      const prop = PROP_MAP[raw.toLowerCase()] || raw;
+      if (/\n\s+groupBy:/.test(yaml)) {
+        yaml = yaml.replace(
+          /groupBy:\n\s+property: [^\n]+/,
+          `groupBy:\n      property: ${prop}`
+        );
+      } else {
+        yaml = yaml.replace(
+          /(order:\n(?:\s+- [^\n]+\n)*\s+- [^\n]+)/,
+          `$1\n    groupBy:\n      property: ${prop}\n      direction: ASC`
+        );
+      }
+    }
+
+    // --- Rename view ---
+    const renameMatch = prompt.match(
+      /(?:rename|name|call)\s+(?:(?:the|this|it)\s+)?(?:view\s+)?(?:to\s+)?["']([^"']+)["']/i
+    );
+    if (renameMatch) {
+      yaml = yaml.replace(/name: "[^"]*"/, `name: "${renameMatch[1].trim()}"`);
     }
 
     return yaml;
