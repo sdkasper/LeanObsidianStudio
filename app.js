@@ -23,6 +23,7 @@
 
   let selectedTemplate = null;
   let hasGenerated = false;
+  let inputFromCard = false; // true when textarea was populated by a card click
 
   // ------------------------------------------------
   // Reset to initial state
@@ -39,6 +40,7 @@
 
     // Clear selection
     selectedTemplate = null;
+    inputFromCard = false;
     cards.forEach((c) => c.classList.remove("card--selected"));
 
     // Hide output
@@ -66,6 +68,7 @@
       // Then select this card and fill description
       card.classList.add("card--selected");
       selectedTemplate = key;
+      inputFromCard = true;
       queryInput.value = tpl.description;
     });
   });
@@ -79,7 +82,7 @@
 
     let yaml = null;
 
-    // 1. Only use the selected template if the user hasn't changed the text.
+    // 1. Card selected AND text unchanged → use the template directly.
     if (
       selectedTemplate &&
       TEMPLATES[selectedTemplate] &&
@@ -87,18 +90,23 @@
     ) {
       yaml = TEMPLATES[selectedTemplate].yaml;
     } else {
-      // User typed a custom prompt — clear any stale card selection.
+      // Clear stale card selection.
       if (selectedTemplate) {
         selectedTemplate = null;
         cards.forEach((c) => c.classList.remove("card--selected"));
       }
-      // 2. Try keyword matching against the user's description.
-      yaml = matchByKeywords(input);
-    }
 
-    // 3. Fallback: build a minimal base from the description.
-    if (!yaml) {
-      yaml = buildFallbackBase(input);
+      // 2. If the user typed from scratch (no card involved), try keyword matching.
+      //    Skip keyword matching when the user edited a card's text, because keywords
+      //    from the original description would match back to the same template.
+      if (!inputFromCard) {
+        yaml = matchByKeywords(input);
+      }
+
+      // 3. Build from the user's actual text.
+      if (!yaml) {
+        yaml = buildFallbackBase(input);
+      }
     }
 
     showOutput(yaml);
@@ -117,6 +125,9 @@
     queryInput.value = "";
     queryInput.placeholder = "e.g., Change the bar color or add a summary.";
     generateLabel.textContent = "Update Base";
+
+    // Textarea is now empty — next input is typed from scratch.
+    inputFromCard = false;
   }
 
   // ------------------------------------------------
