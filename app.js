@@ -163,16 +163,16 @@
   }
 
   // ------------------------------------------------
-  // Fallback: generate a minimal base from keywords
+  // Fallback: generate a base from the user's actual text
   // ------------------------------------------------
   function buildFallbackBase(text) {
     const lower = text.toLowerCase();
 
-    // Try to extract a tag name
+    // --- Filters ---
     const tagMatch = text.match(/#(\w[\w-/]*)/);
-    // Try to extract a folder name
     const folderMatch = text.match(/(?:folder|in)\s+["']?(\w[\w\s/]*)["']?/i);
-    // Detect desired view type
+    const wantsMd = /\bmd\b|\bmarkdown\b/i.test(text);
+
     let viewType = "table";
     if (lower.includes("card")) viewType = "cards";
     else if (lower.includes("list")) viewType = "list";
@@ -185,35 +185,105 @@
     if (folderMatch) {
       filters.push(`file.inFolder("${folderMatch[1].trim()}")`);
     }
-    if (filters.length === 0) {
+    if (wantsMd || filters.length === 0) {
       filters.push('file.ext == "md"');
     }
 
+    // --- Extract properties to display ---
+    // Collect quoted strings, skip values already used as folder/tag names.
+    const folderName = folderMatch ? folderMatch[1].trim().toLowerCase() : null;
+    const tagName = tagMatch ? tagMatch[1].toLowerCase() : null;
+
+    const quotedProps = [];
+    const quoteRe = /[""\u201C\u201D]([^""\u201C\u201D]+)[""\u201C\u201D]/g;
+    let qm;
+    while ((qm = quoteRe.exec(text)) !== null) {
+      const val = qm[1].trim();
+      const valLower = val.toLowerCase();
+      if (valLower === folderName || valLower === tagName || valLower === "md") continue;
+      quotedProps.push(val);
+    }
+
+    // Map well-known names to Bases property paths
+    const PROP_MAP = {
+      "file name": "file.name",
+      "filename": "file.name",
+      "name": "file.name",
+      "file size": "file.size",
+      "size": "file.size",
+      "folder": "file.folder",
+      "file folder": "file.folder",
+      "created": "file.ctime",
+      "creation date": "file.ctime",
+      "modified": "file.mtime",
+      "modification date": "file.mtime",
+      "tags": "file.tags",
+      "links": "file.links",
+      "extension": "file.ext",
+      "ext": "file.ext",
+    };
+
+    const orderProps = quotedProps.map(
+      (p) => PROP_MAP[p.toLowerCase()] || p
+    );
+
+    // --- Sort ---
+    const sortMatch = text.match(/sort(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
+    let sortProp = null;
+    let sortDir = "ASC";
+    if (sortMatch) {
+      const raw = sortMatch[1].trim();
+      sortProp = PROP_MAP[raw.toLowerCase()] || raw;
+      if (/\bdesc/i.test(text)) sortDir = "DESC";
+    }
+
+    // --- Group ---
+    const groupMatch = text.match(/group(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
+    let groupProp = null;
+    if (groupMatch) {
+      const raw = groupMatch[1].trim();
+      groupProp = PROP_MAP[raw.toLowerCase()] || raw;
+    }
+
+    // --- Build YAML ---
     const filterYaml = filters
       .map((f) => `    - ${f.includes('"') ? "'" + f + "'" : f}`)
       .join("\n");
 
-    return `filters:
-  and:
-${filterYaml}
+    let yaml = `filters:\n  and:\n${filterYaml}`;
 
-formulas:
-  last_updated: 'file.mtime.relative()'
-  word_count: '(file.size / 5).round(0)'
+    // If the user specified properties, use those directly.
+    // Otherwise fall back to generic formulas.
+    if (orderProps.length === 0) {
+      yaml += `\n\nformulas:`;
+      yaml += `\n  last_updated: 'file.mtime.relative()'`;
+      yaml += `\n  word_count: '(file.size / 5).round(0)'`;
+      yaml += `\n\nproperties:`;
+      yaml += `\n  formula.last_updated:\n    displayName: "Updated"`;
+      yaml += `\n  formula.word_count:\n    displayName: "~Words"`;
+      orderProps.push("file.name", "formula.word_count", "formula.last_updated");
+    }
 
-properties:
-  formula.last_updated:
-    displayName: "Updated"
-  formula.word_count:
-    displayName: "~Words"
+    const orderYaml = orderProps.map((p) => `      - ${p}`).join("\n");
 
-views:
-  - type: ${viewType}
-    name: "Results"
-    order:
-      - file.name
-      - formula.word_count
-      - formula.last_updated`;
+    yaml += `\n\nviews:`;
+    yaml += `\n  - type: ${viewType}`;
+    yaml += `\n    name: "Results"`;
+    yaml += `\n    order:\n${orderYaml}`;
+
+    if (sortProp) {
+      yaml += `\n    sort:`;
+      yaml += `\n      - property: ${sortProp}`;
+      yaml += `\n        direction: ${sortDir}`;
+    }
+
+    if (groupProp) {
+      yaml += `\n    groupBy:`;
+      yaml += `\n      property: ${groupProp}`;
+      yaml += `\n      direction: ASC`;
+    }
+
+    return yaml;
   }
 
   // ------------------------------------------------
