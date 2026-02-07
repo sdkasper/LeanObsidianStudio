@@ -44,6 +44,34 @@
     ext: "file.ext",
   };
 
+  /** Resolve a name to its Bases property path. */
+  function resolveProp(name) {
+    return PROP_MAP[name.toLowerCase()] || name;
+  }
+
+  /**
+   * Extract property names from a text segment.
+   * Handles quoted ("name") and bare comma/and-separated names.
+   */
+  function extractProps(text) {
+    const props = [];
+    const qRe = /["'\u201C\u201D]([^"'\u201C\u201D]+)["'\u201C\u201D]/g;
+    let m;
+    while ((m = qRe.exec(text)) !== null) props.push(m[1].trim());
+    if (props.length > 0) return props;
+
+    // Unquoted: split by comma / "and", filter noise words
+    const NOISE =
+      /^(?:a|an|the|it|to|as|my|this|that|me|too|also|well|and|or|for|of|in|on|view|type|column|columns|property|properties|field|fields|be|should|shall|must|can|could|would|please)$/i;
+    text.split(/\s*(?:,\s*(?:and\s+)?|\band\b)\s*/i).forEach((part) => {
+      const cleaned = part.replace(/^(?:the|a|an)\s+/i, "").trim();
+      if (cleaned && cleaned.length > 1 && !NOISE.test(cleaned)) {
+        props.push(cleaned);
+      }
+    });
+    return props;
+  }
+
   // ------------------------------------------------
   // Reset to initial state
   // ------------------------------------------------
@@ -150,7 +178,8 @@
     blueprintTitle.textContent = "Modify Your Base";
     resetBtn.style.display = "inline-flex";
     queryInput.value = "";
-    queryInput.placeholder = "e.g., Change the bar color or add a summary.";
+    queryInput.placeholder =
+      "e.g., also show status, switch to cards, change tag to #recipes";
     generateLabel.textContent = "Update Base";
 
     // Textarea is now empty — next input is typed from scratch.
@@ -196,14 +225,17 @@
     const lower = text.toLowerCase();
 
     // --- Filters ---
-    const tagMatch = text.match(/#(\w[\w-/]*)/);
+    // Support both #tag and "tagged X" / "tag X"
+    const tagMatch =
+      text.match(/#(\w[\w-/]*)/) ||
+      text.match(/\btag(?:ged)?\s+["']?(\w[\w-/]*)["']?/i);
     const folderMatch = text.match(/(?:folder|in)\s+["']?(\w[\w\s/]*)["']?/i);
     const wantsMd = /\bmd\b|\bmarkdown\b/i.test(text);
 
     let viewType = "table";
-    if (lower.includes("card")) viewType = "cards";
-    else if (lower.includes("list")) viewType = "list";
-    else if (lower.includes("map")) viewType = "map";
+    if (/\bcards?\b/i.test(lower)) viewType = "cards";
+    else if (/\blist\b/i.test(lower)) viewType = "list";
+    else if (/\bmap\b/i.test(lower)) viewType = "map";
 
     const filters = [];
     if (tagMatch) {
@@ -217,31 +249,48 @@
     }
 
     // --- Extract properties to display ---
-    // Collect quoted strings, skip values already used as folder/tag names.
     const folderName = folderMatch ? folderMatch[1].trim().toLowerCase() : null;
     const tagName = tagMatch ? tagMatch[1].toLowerCase() : null;
+    const skipVals = new Set(
+      [folderName, tagName, "md"].filter(Boolean)
+    );
 
-    const quotedProps = [];
+    // 1. Quoted properties
+    const userProps = [];
     const quoteRe = /[""\u201C\u201D]([^""\u201C\u201D]+)[""\u201C\u201D]/g;
     let qm;
     while ((qm = quoteRe.exec(text)) !== null) {
       const val = qm[1].trim();
-      const valLower = val.toLowerCase();
-      if (valLower === folderName || valLower === tagName || valLower === "md") continue;
-      quotedProps.push(val);
+      if (!skipVals.has(val.toLowerCase())) userProps.push(val);
     }
 
-    const orderProps = quotedProps.map(
-      (p) => PROP_MAP[p.toLowerCase()] || p
-    );
+    // 2. If no quoted properties, try unquoted after
+    //    "properties/columns/fields" or "show/display/with ... properties"
+    if (userProps.length === 0) {
+      const propListMatch =
+        text.match(
+          /(?:properties|columns|fields)\s+(.+?)(?:\.\s|,?\s*(?:sort|group|filter)\b|$)/i
+        ) ||
+        text.match(
+          /(?:show|display|with)\s+(?:(?:the|me|following|these)\s+)?(?:(?:properties|columns|fields)\s+)(.+?)(?:\.\s|,?\s*(?:sort|group|filter)\b|$)/i
+        );
+      if (propListMatch) {
+        extractProps(propListMatch[1]).forEach((p) => {
+          if (!skipVals.has(p.toLowerCase())) userProps.push(p);
+        });
+      }
+    }
+
+    const orderProps = userProps.map((p) => resolveProp(p));
 
     // --- Sort ---
-    const sortMatch = text.match(/sort(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
+    const sortMatch = text.match(
+      /(?:sort|order)(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i
+    );
     let sortProp = null;
     let sortDir = "ASC";
     if (sortMatch) {
-      const raw = sortMatch[1].trim();
-      sortProp = PROP_MAP[raw.toLowerCase()] || raw;
+      sortProp = resolveProp(sortMatch[1].trim());
       if (/\bdesc/i.test(text)) sortDir = "DESC";
     }
 
@@ -249,8 +298,7 @@
     const groupMatch = text.match(/group(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
     let groupProp = null;
     if (groupMatch) {
-      const raw = groupMatch[1].trim();
-      groupProp = PROP_MAP[raw.toLowerCase()] || raw;
+      groupProp = resolveProp(groupMatch[1].trim());
     }
 
     // --- Build YAML ---
@@ -301,8 +349,10 @@
     let yaml = currentYaml;
     const lower = prompt.toLowerCase();
 
-    // --- Change / add tag filter ---
-    const tagMatch = prompt.match(/#(\w[\w-/]*)/);
+    // --- Tag filter (supports #tag and "change tag to X") ---
+    const tagMatch =
+      prompt.match(/#(\w[\w-/]*)/) ||
+      prompt.match(/\btag(?:ged)?\s+(?:to\s+)?["']?(\w[\w-/]*)["']?/i);
     if (tagMatch) {
       const newTag = tagMatch[1];
       if (/file\.hasTag\(/.test(yaml)) {
@@ -315,12 +365,17 @@
       }
     }
 
-    // --- Change / add folder filter ---
-    const folderMatch = prompt.match(/(?:folder|in)\s+["']?(\w[\w\s/]*)["']?/i);
+    // --- Folder filter ---
+    const folderMatch = prompt.match(
+      /(?:folder|in)\s+["']?(\w[\w\s/]*)["']?/i
+    );
     if (folderMatch) {
       const newFolder = folderMatch[1].trim();
       if (/file\.inFolder\(/.test(yaml)) {
-        yaml = yaml.replace(/file\.inFolder\("[^"]*"\)/, `file.inFolder("${newFolder}")`);
+        yaml = yaml.replace(
+          /file\.inFolder\("[^"]*"\)/,
+          `file.inFolder("${newFolder}")`
+        );
       } else {
         yaml = yaml.replace(
           /(filters:\n\s+and:\n)/,
@@ -329,51 +384,54 @@
       }
     }
 
-    // --- Change view type ---
-    let newViewType = null;
-    if (/\bcards?\s+view\b|\bview\b.*\bcards?\b|\bto\s+cards?\b|\bas\s+cards?\b/.test(lower)) {
-      newViewType = "cards";
-    } else if (/\btable\s+view\b|\bview\b.*\btable\b|\bto\s+table\b|\bas\s+table\b/.test(lower)) {
-      newViewType = "table";
-    } else if (/\blist\s+view\b|\bview\b.*\blist\b|\bto\s+list\b|\bas\s+list\b/.test(lower)) {
-      newViewType = "list";
-    } else if (/\bmap\s+view\b|\bview\b.*\bmap\b|\bto\s+map\b|\bas\s+map\b/.test(lower)) {
-      newViewType = "map";
-    }
-    if (newViewType) {
-      yaml = yaml.replace(/type: \w+/, `type: ${newViewType}`);
+    // --- View type (loose: any mention of cards/table/list/map) ---
+    if (/\bcards?\b/i.test(lower))
+      yaml = yaml.replace(/type: \w+/, "type: cards");
+    else if (/\btable\b/i.test(lower))
+      yaml = yaml.replace(/type: \w+/, "type: table");
+    else if (/\blist\b/i.test(lower))
+      yaml = yaml.replace(/type: \w+/, "type: list");
+    else if (/\bmap\b/i.test(lower))
+      yaml = yaml.replace(/type: \w+/, "type: map");
+
+    // --- Add properties ("also show X", "include X and Y", "I need X") ---
+    const addSeg = prompt.match(
+      /(?:add|show|include|also|display|want|need)\s+(.*?)(?:\.\s*$|$)/i
+    );
+    if (addSeg && !/\b(?:remove|hide|delete|drop)\b/i.test(lower)) {
+      const VIEW_NOISE =
+        /^(?:cards?|table|list|map|view|sort|group|it|this|that|them)$/i;
+      const names = extractProps(addSeg[1]);
+      for (const name of names) {
+        const prop = resolveProp(name);
+        if (VIEW_NOISE.test(prop)) continue;
+        if (yaml.includes(`- ${prop}`)) continue; // already present
+        yaml = yaml.replace(
+          /(order:\n(?:\s+- [^\n]+\n)*\s+- [^\n]+)/,
+          `$1\n      - ${prop}`
+        );
+      }
     }
 
-    // --- Add property / column ---
-    const addMatch =
-      prompt.match(/add\s+(?:(?:a|the)\s+)?(?:property|column|field)?\s*["']([^"']+)["']/i) ||
-      prompt.match(/add\s+(?:(?:a|the)\s+)?(?:property|column|field)\s+(\w[\w\s]*)/i);
-    if (addMatch) {
-      const raw = addMatch[1].trim();
-      const mapped = PROP_MAP[raw.toLowerCase()] || raw;
-      // Append after the last item in the first order block.
-      yaml = yaml.replace(
-        /(order:\n(?:\s+- [^\n]+\n)*\s+- [^\n]+)/,
-        `$1\n      - ${mapped}`
-      );
+    // --- Remove properties ("remove X", "hide X", "drop X and Y") ---
+    const removeSeg = prompt.match(
+      /(?:remove|hide|delete|drop|without)\s+(.*?)(?:\.\s*$|$)/i
+    );
+    if (removeSeg) {
+      const names = extractProps(removeSeg[1]);
+      for (const name of names) {
+        const prop = resolveProp(name);
+        const escaped = prop.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+        yaml = yaml.replace(new RegExp(`\\n\\s+- ${escaped}`, ""), "");
+      }
     }
 
-    // --- Remove property / column ---
-    const removeMatch =
-      prompt.match(/remove\s+(?:(?:a|the)\s+)?(?:property|column|field)?\s*["']([^"']+)["']/i) ||
-      prompt.match(/remove\s+(?:(?:a|the)\s+)?(?:property|column|field)\s+(\w[\w\s]*)/i);
-    if (removeMatch) {
-      const raw = removeMatch[1].trim();
-      const mapped = PROP_MAP[raw.toLowerCase()] || raw;
-      const escaped = mapped.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      yaml = yaml.replace(new RegExp(`\\n\\s+- ${escaped}`, ""), "");
-    }
-
-    // --- Sort ---
-    const sortMatch = prompt.match(/sort(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
+    // --- Sort ("sort by X", "order by X descending") ---
+    const sortMatch = prompt.match(
+      /(?:sort|order)(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i
+    );
     if (sortMatch) {
-      const raw = sortMatch[1].trim();
-      const prop = PROP_MAP[raw.toLowerCase()] || raw;
+      const prop = resolveProp(sortMatch[1].trim());
       const dir = /\bdesc/i.test(prompt) ? "DESC" : "ASC";
       if (/\n\s+sort:/.test(yaml)) {
         yaml = yaml.replace(
@@ -388,11 +446,12 @@
       }
     }
 
-    // --- Group by ---
-    const groupMatch = prompt.match(/group(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i);
+    // --- Group ("group by X") ---
+    const groupMatch = prompt.match(
+      /group(?:ed)?\s+by\s+["']?(\w[\w\s]*)["']?/i
+    );
     if (groupMatch) {
-      const raw = groupMatch[1].trim();
-      const prop = PROP_MAP[raw.toLowerCase()] || raw;
+      const prop = resolveProp(groupMatch[1].trim());
       if (/\n\s+groupBy:/.test(yaml)) {
         yaml = yaml.replace(
           /groupBy:\n\s+property: [^\n]+/,
