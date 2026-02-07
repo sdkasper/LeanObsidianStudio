@@ -24,6 +24,14 @@
   let selectedTemplate = null;
   let hasGenerated = false;
 
+  // Clear template selection when user edits the textarea
+  queryInput.addEventListener("input", () => {
+    if (selectedTemplate) {
+      selectedTemplate = null;
+      cards.forEach((c) => c.classList.remove("card--selected"));
+    }
+  });
+
   // ------------------------------------------------
   // Reset to initial state
   // ------------------------------------------------
