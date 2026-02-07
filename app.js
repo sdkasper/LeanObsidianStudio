@@ -79,10 +79,19 @@
 
     let yaml = null;
 
-    // 1. If a card is selected, use that template directly.
-    if (selectedTemplate && TEMPLATES[selectedTemplate]) {
+    // 1. Only use the selected template if the user hasn't changed the text.
+    if (
+      selectedTemplate &&
+      TEMPLATES[selectedTemplate] &&
+      input === TEMPLATES[selectedTemplate].description
+    ) {
       yaml = TEMPLATES[selectedTemplate].yaml;
     } else {
+      // User typed a custom prompt — clear any stale card selection.
+      if (selectedTemplate) {
+        selectedTemplate = null;
+        cards.forEach((c) => c.classList.remove("card--selected"));
+      }
       // 2. Try keyword matching against the user's description.
       yaml = matchByKeywords(input);
     }
