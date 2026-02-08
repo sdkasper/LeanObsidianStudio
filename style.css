@@ -241,6 +241,27 @@ body {
   transform: translateY(0);
 }
 
+.blueprint__btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.blueprint__btn:disabled:hover {
+  background: var(--btn-bg);
+  box-shadow: none;
+  transform: none;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+.blueprint__btn--loading {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
 .blueprint__btn-icon {
   width: 18px;
   height: 18px;
