@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "api/generate.js": {
+      "includeFiles": ".agents/skills/obsidian-bases/SKILL.md"
+    }
+  }
+}

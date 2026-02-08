@@ -23,6 +23,7 @@
 
   let selectedTemplate = null;
   let hasGenerated = false;
+  let isLoading = false;
 
   // ------------------------------------------------
   // Reset to initial state
@@ -30,25 +31,60 @@
   function resetToInitial() {
     hasGenerated = false;
 
-    // Restore input panel
     blueprintTitle.textContent = "Base Blueprint";
     resetBtn.style.display = "none";
     queryInput.value = "";
     queryInput.placeholder = "Describe the query you want.";
     generateLabel.textContent = "Generate my Base";
 
-    // Clear selection
     selectedTemplate = null;
     cards.forEach((c) => c.classList.remove("card--selected"));
 
-    // Hide output
     outputPlaceholder.style.display = "flex";
     outputResult.style.display = "none";
     outputPanel.classList.remove("blueprint__output--filled");
     outputCode.textContent = "";
 
-    // Show templates
     templatesSection.style.display = "";
+  }
+
+  // ------------------------------------------------
+  // Loading state
+  // ------------------------------------------------
+  function setLoading(on) {
+    isLoading = on;
+    generateBtn.disabled = on;
+    generateBtn.classList.toggle("blueprint__btn--loading", on);
+
+    if (on) {
+      generateLabel.dataset.prevText = generateLabel.textContent;
+      generateLabel.textContent = hasGenerated ? "Updating..." : "Generating...";
+    } else {
+      generateLabel.textContent =
+        generateLabel.dataset.prevText || "Generate my Base";
+    }
+  }
+
+  // ------------------------------------------------
+  // Call Claude API via Vercel proxy
+  // ------------------------------------------------
+  async function generateWithAI(prompt, currentYaml) {
+    const body = { prompt };
+    if (currentYaml) body.currentYaml = currentYaml;
+
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || "Failed to generate. Please try again.");
+    }
+
+    const data = await res.json();
+    return data.yaml;
   }
 
   // ------------------------------------------------
@@ -60,10 +96,7 @@
       const tpl = TEMPLATES[key];
       if (!tpl) return;
 
-      // Always reset to a clean slate first
       resetToInitial();
-
-      // Then select this card and fill description
       card.classList.add("card--selected");
       selectedTemplate = key;
       queryInput.value = tpl.description;
@@ -73,36 +106,44 @@
   // ------------------------------------------------
   // Generate Base query
   // ------------------------------------------------
-  generateBtn.addEventListener("click", () => {
+  generateBtn.addEventListener("click", async () => {
+    if (isLoading) return;
     const input = queryInput.value.trim();
     if (!input) return;
 
-    let yaml = null;
-
-    // 1. Only use the selected template if the user hasn't changed the text.
+    // --- Instant path: card selected, text unmodified → use static template ---
     if (
+      !hasGenerated &&
       selectedTemplate &&
       TEMPLATES[selectedTemplate] &&
       input === TEMPLATES[selectedTemplate].description
     ) {
-      yaml = TEMPLATES[selectedTemplate].yaml;
-    } else {
-      // User typed a custom prompt — clear any stale card selection.
-      if (selectedTemplate) {
-        selectedTemplate = null;
-        cards.forEach((c) => c.classList.remove("card--selected"));
-      }
-      // 2. Try keyword matching against the user's description.
-      yaml = matchByKeywords(input);
+      showOutput(TEMPLATES[selectedTemplate].yaml);
+      enterGeneratedState();
+      queryInput.value = "";
+      return;
     }
 
-    // 3. Fallback: build a minimal base from the description.
-    if (!yaml) {
-      yaml = buildFallbackBase(input);
+    // --- AI path: everything else ---
+    // Clear stale card selection
+    if (selectedTemplate) {
+      selectedTemplate = null;
+      cards.forEach((c) => c.classList.remove("card--selected"));
     }
 
-    showOutput(yaml);
-    enterGeneratedState();
+    setLoading(true);
+    queryInput.value = "";
+
+    try {
+      const currentYaml = hasGenerated ? outputCode.textContent : null;
+      const yaml = await generateWithAI(input, currentYaml);
+      showOutput(yaml);
+      enterGeneratedState();
+    } catch (err) {
+      showError(err.message);
+    } finally {
+      setLoading(false);
+    }
   });
 
   // ------------------------------------------------
@@ -115,95 +156,17 @@
     blueprintTitle.textContent = "Modify Your Base";
     resetBtn.style.display = "inline-flex";
     queryInput.value = "";
-    queryInput.placeholder = "e.g., Change the bar color or add a summary.";
+    queryInput.placeholder =
+      "e.g., also show status, switch to cards, change tag to #recipes";
     generateLabel.textContent = "Update Base";
+
+    templatesSection.style.display = "";
   }
 
   // ------------------------------------------------
   // Reset button
   // ------------------------------------------------
   resetBtn.addEventListener("click", resetToInitial);
-
-  // ------------------------------------------------
-  // Keyword matcher
-  // ------------------------------------------------
-  function matchByKeywords(text) {
-    const lower = text.toLowerCase();
-    let bestMatch = null;
-    let bestScore = 0;
-
-    for (const entry of KEYWORD_MAP) {
-      let score = 0;
-      for (const kw of entry.keywords) {
-        if (lower.includes(kw)) score++;
-      }
-      if (score > bestScore) {
-        bestScore = score;
-        bestMatch = entry.template;
-      }
-    }
-
-    if (bestScore === 0) return null;
-
-    // Check card templates first, then extras.
-    if (TEMPLATES[bestMatch]) return TEMPLATES[bestMatch].yaml;
-    if (EXTRA_TEMPLATES[bestMatch]) return EXTRA_TEMPLATES[bestMatch];
-    return null;
-  }
-
-  // ------------------------------------------------
-  // Fallback: generate a minimal base from keywords
-  // ------------------------------------------------
-  function buildFallbackBase(text) {
-    const lower = text.toLowerCase();
-
-    // Try to extract a tag name
-    const tagMatch = text.match(/#(\w[\w-/]*)/);
-    // Try to extract a folder name
-    const folderMatch = text.match(/(?:folder|in)\s+["']?(\w[\w\s/]*)["']?/i);
-    // Detect desired view type
-    let viewType = "table";
-    if (lower.includes("card")) viewType = "cards";
-    else if (lower.includes("list")) viewType = "list";
-    else if (lower.includes("map")) viewType = "map";
-
-    const filters = [];
-    if (tagMatch) {
-      filters.push(`file.hasTag("${tagMatch[1]}")`);
-    }
-    if (folderMatch) {
-      filters.push(`file.inFolder("${folderMatch[1].trim()}")`);
-    }
-    if (filters.length === 0) {
-      filters.push('file.ext == "md"');
-    }
-
-    const filterYaml = filters
-      .map((f) => `    - ${f.includes('"') ? "'" + f + "'" : f}`)
-      .join("\n");
-
-    return `filters:
-  and:
-${filterYaml}
-
-formulas:
-  last_updated: 'file.mtime.relative()'
-  word_count: '(file.size / 5).round(0)'
-
-properties:
-  formula.last_updated:
-    displayName: "Updated"
-  formula.word_count:
-    displayName: "~Words"
-
-views:
-  - type: ${viewType}
-    name: "Results"
-    order:
-      - file.name
-      - formula.word_count
-      - formula.last_updated`;
-  }
 
   // ------------------------------------------------
   // Display the output
@@ -213,6 +176,16 @@ views:
     outputResult.style.display = "flex";
     outputPanel.classList.add("blueprint__output--filled");
     outputCode.textContent = yaml;
+  }
+
+  // ------------------------------------------------
+  // Display an error
+  // ------------------------------------------------
+  function showError(message) {
+    outputPlaceholder.style.display = "none";
+    outputResult.style.display = "flex";
+    outputPanel.classList.add("blueprint__output--filled");
+    outputCode.textContent = "Error: " + message;
   }
 
   // ------------------------------------------------
