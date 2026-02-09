@@ -35,7 +35,7 @@
     resetBtn.style.display = "none";
     queryInput.value = "";
     queryInput.placeholder = "Describe the query you want.";
-    generateLabel.textContent = "Generate my Base";
+    generateLabel.textContent = "Generate";
 
     selectedTemplate = null;
     cards.forEach((c) => c.classList.remove("card--selected"));
@@ -132,6 +132,7 @@
     }
 
     setLoading(true);
+    showLoading(hasGenerated ? "Updating your Base..." : "Generating your Base...");
     queryInput.value = "";
 
     try {
@@ -158,7 +159,7 @@
     queryInput.value = "";
     queryInput.placeholder =
       "e.g., also show status, switch to cards, change tag to #recipes";
-    generateLabel.textContent = "Update Base";
+    generateLabel.textContent = "Update";
 
     templatesSection.style.display = "";
   }
@@ -167,6 +168,17 @@
   // Reset button
   // ------------------------------------------------
   resetBtn.addEventListener("click", resetToInitial);
+
+  // ------------------------------------------------
+  // Show loading indicator in output panel
+  // ------------------------------------------------
+  function showLoading(message) {
+    outputPlaceholder.style.display = "none";
+    outputResult.style.display = "flex";
+    outputPanel.classList.add("blueprint__output--filled");
+    outputCode.innerHTML =
+      '<span class="blueprint__loader"></span> ' + message;
+  }
 
   // ------------------------------------------------
   // Display the output
