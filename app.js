@@ -20,6 +20,11 @@
   const downloadBtn = document.getElementById("downloadBtn");
   const cards = document.querySelectorAll(".card[data-template]");
   const templatesSection = document.getElementById("templatesSection");
+  const templateBtn = document.getElementById("templateBtn");
+  const templateHelp = document.getElementById("templateHelp");
+
+  // Structured prompt template
+  const PROMPT_TEMPLATE = `Folder: \n\nTags to include: \nTags to exclude: \nTag matching: any / all\n\nFilter by properties:\n- "property" equals / not equals / contains / starts with / ends with / empty / not empty / greater / less / after / before / in the last __ days "value"\n\nShow results as: Table / List / Cards / Map\nView name: \n\nFields to show: "file name", "property1", "property2", ...\nDisplay names: "property" as "Label"\n\nComputed fields:\n- "label": describe what to calculate, e.g. "days since creation", "progress bar"\n\nSummaries: "property" Sum / Average / Min / Max / Count\n\nSort by: "property" ascending / descending\nGroup by: "property"\nLimit: `;
 
   let selectedTemplate = null;
   let hasGenerated = false;
@@ -39,6 +44,10 @@
 
     selectedTemplate = null;
     cards.forEach((c) => c.classList.remove("card--selected"));
+
+    templateBtn.style.display = "inline-flex";
+    templateHelp.classList.remove("blueprint__help--visible");
+    templateHelp.removeAttribute("open");
 
     outputPlaceholder.style.display = "flex";
     outputResult.style.display = "none";
@@ -61,7 +70,7 @@
       generateLabel.textContent = hasGenerated ? "Updating..." : "Generating...";
     } else {
       generateLabel.textContent =
-        generateLabel.dataset.prevText || "Generate my Base";
+        generateLabel.dataset.prevText || "Generate";
     }
   }
 
@@ -86,6 +95,17 @@
     const data = await res.json();
     return data.yaml;
   }
+
+  // ------------------------------------------------
+  // Prompt template button
+  // ------------------------------------------------
+  templateBtn.addEventListener("click", () => {
+    resetToInitial();
+    queryInput.value = PROMPT_TEMPLATE;
+    templateHelp.classList.add("blueprint__help--visible");
+    templateBtn.style.display = "none";
+    queryInput.focus();
+  });
 
   // ------------------------------------------------
   // Template card selection
@@ -160,6 +180,10 @@
     queryInput.placeholder =
       "e.g., also show status, switch to cards, change tag to #recipes";
     generateLabel.textContent = "Update";
+
+    templateBtn.style.display = "none";
+    templateHelp.classList.remove("blueprint__help--visible");
+    templateHelp.removeAttribute("open");
 
     templatesSection.style.display = "";
   }

@@ -169,7 +169,14 @@ body {
   font-style: italic;
 }
 
-.blueprint__reset {
+.blueprint__title-actions {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.blueprint__reset,
+.blueprint__template-btn {
   display: inline-flex;
   align-items: center;
   gap: 0.3rem;
@@ -184,9 +191,51 @@ body {
   transition: color 0.2s, background 0.2s;
 }
 
-.blueprint__reset:hover {
+.blueprint__reset:hover,
+.blueprint__template-btn:hover {
   color: var(--accent);
   background: var(--accent-dim);
+}
+
+/* --- Collapsible Help --- */
+.blueprint__help {
+  margin-bottom: 0.75rem;
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  display: none;
+}
+
+.blueprint__help--visible {
+  display: block;
+}
+
+.blueprint__help summary {
+  cursor: pointer;
+  color: var(--accent);
+  font-weight: 500;
+  padding: 0.25rem 0;
+  list-style: none;
+}
+
+.blueprint__help summary::before {
+  content: "\25B6  ";
+  font-size: 0.65rem;
+  transition: transform 0.2s;
+  display: inline-block;
+}
+
+.blueprint__help[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.blueprint__help ul {
+  margin-top: 0.5rem;
+  padding-left: 1.25rem;
+  line-height: 1.7;
+}
+
+.blueprint__help li {
+  margin-bottom: 0.25rem;
 }
 
 .blueprint__textarea {
