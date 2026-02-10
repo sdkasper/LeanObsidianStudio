@@ -20,6 +20,49 @@
   const downloadBtn = document.getElementById("downloadBtn");
   const cards = document.querySelectorAll(".card[data-template]");
   const templatesSection = document.getElementById("templatesSection");
+  const templateBtn = document.getElementById("templateBtn");
+  const templateHelp = document.getElementById("templateHelp");
+  const flyoutCloseBtn = document.getElementById("flyoutCloseBtn");
+
+  // Structured prompt template
+  const PROMPT_TEMPLATE =
+    "# FOLDER\n" +
+    "Folder: <enter folder path or leave empty for whole vault>\n" +
+    "\n" +
+    "# TAGS\n" +
+    "Tags to include: <tag1, tag2, tag3 or leave empty>\n" +
+    "Tags to exclude: <tag1, tag2, tag3 or leave empty>\n" +
+    "Tag matching: <any | all>\n" +
+    "\n" +
+    "# PROPERTY FILTERS\n" +
+    "Property: <property name>\n" +
+    "Condition: <equals | not equals | contains | starts with | ends with | empty | not empty | greater | less | after | before | in the last __ days>\n" +
+    "Value: <value>\n" +
+    "\n" +
+    "# VIEWS\n" +
+    "View name: <short descriptive name>\n" +
+    "Show results as: <Table | List | Cards | Map>\n" +
+    "\n" +
+    "# FIELDS\n" +
+    "Fields to show (comma-separated): <file name, property1, property2, property3>\n" +
+    "\n" +
+    "Display names (optional):\n" +
+    "- <property> as <Label>\n" +
+    "- <property> as <Label>\n" +
+    "\n" +
+    "# FORMULAS (optional)\n" +
+    "Label: <name shown in the view>\n" +
+    "Description: <what should be calculated>\n" +
+    "\n" +
+    "# SUMMARIES (optional)\n" +
+    "Property: <property name>\n" +
+    "Calculation: <Sum | Average | Min | Max | Count>\n" +
+    "\n" +
+    "# ORDERING\n" +
+    "Sort by: <property name>\n" +
+    "Sort direction: <ascending | descending>\n" +
+    "Group by: <property name or leave empty>\n" +
+    "Limit: <number>";
 
   let selectedTemplate = null;
   let hasGenerated = false;
@@ -34,11 +77,16 @@
     blueprintTitle.textContent = "Base Blueprint";
     resetBtn.style.display = "none";
     queryInput.value = "";
+    queryInput.style.height = "";
+    queryInput.style.flex = "";
     queryInput.placeholder = "Describe the query you want.";
     generateLabel.textContent = "Generate";
 
     selectedTemplate = null;
     cards.forEach((c) => c.classList.remove("card--selected"));
+
+    templateBtn.style.display = "inline-flex";
+    templateHelp.classList.remove("blueprint__flyout--open");
 
     outputPlaceholder.style.display = "flex";
     outputResult.style.display = "none";
@@ -61,7 +109,7 @@
       generateLabel.textContent = hasGenerated ? "Updating..." : "Generating...";
     } else {
       generateLabel.textContent =
-        generateLabel.dataset.prevText || "Generate my Base";
+        generateLabel.dataset.prevText || "Generate";
     }
   }
 
@@ -86,6 +134,29 @@
     const data = await res.json();
     return data.yaml;
   }
+
+  // ------------------------------------------------
+  // Prompt template button
+  // ------------------------------------------------
+  templateBtn.addEventListener("click", () => {
+    resetToInitial();
+    queryInput.value = PROMPT_TEMPLATE;
+    // Expand textarea: override flex and set explicit height
+    queryInput.style.flex = "none";
+    queryInput.style.height = "auto";
+    queryInput.style.height = queryInput.scrollHeight + "px";
+    // Show flyout help panel
+    templateHelp.classList.add("blueprint__flyout--open");
+    // Show reset, hide template button
+    resetBtn.style.display = "inline-flex";
+    templateBtn.style.display = "none";
+    queryInput.focus();
+  });
+
+  // Close flyout via X button
+  flyoutCloseBtn.addEventListener("click", () => {
+    templateHelp.classList.remove("blueprint__flyout--open");
+  });
 
   // ------------------------------------------------
   // Template card selection
@@ -121,6 +192,8 @@
       showOutput(TEMPLATES[selectedTemplate].yaml);
       enterGeneratedState();
       queryInput.value = "";
+      queryInput.style.height = "";
+      queryInput.style.flex = "";
       return;
     }
 
@@ -134,6 +207,8 @@
     setLoading(true);
     showLoading(hasGenerated ? "Updating your Base..." : "Generating your Base...");
     queryInput.value = "";
+    queryInput.style.height = "";
+    queryInput.style.flex = "";
 
     try {
       const currentYaml = hasGenerated ? outputCode.textContent : null;
@@ -160,6 +235,9 @@
     queryInput.placeholder =
       "e.g., also show status, switch to cards, change tag to #recipes";
     generateLabel.textContent = "Update";
+
+    templateBtn.style.display = "none";
+    templateHelp.classList.remove("blueprint__flyout--open");
 
     templatesSection.style.display = "";
   }
@@ -233,6 +311,15 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  });
+
+  // ------------------------------------------------
+  // Show/hide Reset when textarea has content
+  // ------------------------------------------------
+  queryInput.addEventListener("input", () => {
+    if (!hasGenerated) {
+      resetBtn.style.display = queryInput.value.trim() ? "inline-flex" : "none";
+    }
   });
 
   // ------------------------------------------------
