@@ -77,6 +77,7 @@
     resetBtn.style.display = "none";
     queryInput.value = "";
     queryInput.style.height = "";
+    queryInput.style.flex = "";
     queryInput.placeholder = "Describe the query you want.";
     generateLabel.textContent = "Generate";
 
@@ -84,8 +85,7 @@
     cards.forEach((c) => c.classList.remove("card--selected"));
 
     templateBtn.style.display = "inline-flex";
-    templateHelp.classList.remove("blueprint__help--visible");
-    templateHelp.removeAttribute("open");
+    templateHelp.style.display = "none";
 
     outputPlaceholder.style.display = "flex";
     outputResult.style.display = "none";
@@ -140,10 +140,15 @@
   templateBtn.addEventListener("click", () => {
     resetToInitial();
     queryInput.value = PROMPT_TEMPLATE;
-    // Expand textarea to show full template
+    // Expand textarea: override flex and set explicit height
+    queryInput.style.flex = "none";
     queryInput.style.height = "auto";
     queryInput.style.height = queryInput.scrollHeight + "px";
-    templateHelp.classList.add("blueprint__help--visible");
+    // Show help in output panel
+    outputPlaceholder.style.display = "none";
+    templateHelp.style.display = "flex";
+    // Show reset, hide template button
+    resetBtn.style.display = "inline-flex";
     templateBtn.style.display = "none";
     queryInput.focus();
   });
@@ -182,6 +187,8 @@
       showOutput(TEMPLATES[selectedTemplate].yaml);
       enterGeneratedState();
       queryInput.value = "";
+      queryInput.style.height = "";
+      queryInput.style.flex = "";
       return;
     }
 
@@ -195,6 +202,8 @@
     setLoading(true);
     showLoading(hasGenerated ? "Updating your Base..." : "Generating your Base...");
     queryInput.value = "";
+    queryInput.style.height = "";
+    queryInput.style.flex = "";
 
     try {
       const currentYaml = hasGenerated ? outputCode.textContent : null;
@@ -223,8 +232,7 @@
     generateLabel.textContent = "Update";
 
     templateBtn.style.display = "none";
-    templateHelp.classList.remove("blueprint__help--visible");
-    templateHelp.removeAttribute("open");
+    templateHelp.style.display = "none";
 
     templatesSection.style.display = "";
   }
@@ -298,6 +306,15 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  });
+
+  // ------------------------------------------------
+  // Show/hide Reset when textarea has content
+  // ------------------------------------------------
+  queryInput.addEventListener("input", () => {
+    if (!hasGenerated) {
+      resetBtn.style.display = queryInput.value.trim() ? "inline-flex" : "none";
+    }
   });
 
   // ------------------------------------------------

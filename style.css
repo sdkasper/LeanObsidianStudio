@@ -230,49 +230,27 @@ body {
   opacity: 1;
 }
 
-/* --- Collapsible Help --- */
+/* --- Help Panel (in output area) --- */
 .blueprint__help {
-  margin-bottom: 0.75rem;
-  font-size: 0.75rem;
+  flex: 1;
+  font-size: 0.78rem;
   color: var(--text-secondary);
-  display: none;
-}
-
-.blueprint__help--visible {
-  display: block;
-}
-
-.blueprint__help-details summary {
-  cursor: pointer;
-  color: var(--accent);
-  font-weight: 500;
-  padding: 0.25rem 0;
-  list-style: none;
-}
-
-.blueprint__help-details summary::before {
-  content: "\25B6  ";
-  font-size: 0.65rem;
-  transition: transform 0.2s;
-  display: inline-block;
-}
-
-.blueprint__help-details[open] summary::before {
-  transform: rotate(90deg);
-}
-
-.blueprint__help-body {
-  margin-top: 0.5rem;
-  max-height: 280px;
   overflow-y: auto;
-  padding-right: 0.5rem;
+}
+
+.blueprint__help-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--accent);
+  font-style: italic;
+  margin-bottom: 1rem;
 }
 
 .blueprint__help-body h4 {
   color: var(--text-heading);
-  font-size: 0.75rem;
+  font-size: 0.78rem;
   font-weight: 600;
-  margin-top: 0.75rem;
+  margin-top: 0.85rem;
   margin-bottom: 0.25rem;
 }
 
@@ -287,9 +265,9 @@ body {
 }
 
 .blueprint__help-body ul {
-  padding-left: 1.1rem;
-  line-height: 1.6;
-  margin-bottom: 0.25rem;
+  padding-left: 1.25rem;
+  line-height: 1.65;
+  margin-bottom: 0.15rem;
 }
 
 .blueprint__help-body li {
