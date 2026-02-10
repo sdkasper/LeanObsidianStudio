@@ -24,7 +24,44 @@
   const templateHelp = document.getElementById("templateHelp");
 
   // Structured prompt template
-  const PROMPT_TEMPLATE = `Folder: \n\nTags to include: \nTags to exclude: \nTag matching: any / all\n\nFilter by properties:\n- "property" equals / not equals / contains / starts with / ends with / empty / not empty / greater / less / after / before / in the last __ days "value"\n\nShow results as: Table / List / Cards / Map\nView name: \n\nFields to show: "file name", "property1", "property2", ...\nDisplay names: "property" as "Label"\n\nComputed fields:\n- "label": describe what to calculate, e.g. "days since creation", "progress bar"\n\nSummaries: "property" Sum / Average / Min / Max / Count\n\nSort by: "property" ascending / descending\nGroup by: "property"\nLimit: `;
+  const PROMPT_TEMPLATE =
+    "# FOLDER\n" +
+    "Folder: <enter folder path or leave empty for whole vault>\n" +
+    "\n" +
+    "# TAGS\n" +
+    "Tags to include: <tag1, tag2, tag3 or leave empty>\n" +
+    "Tags to exclude: <tag1, tag2, tag3 or leave empty>\n" +
+    "Tag matching: <any | all>\n" +
+    "\n" +
+    "# PROPERTY FILTERS\n" +
+    "Property: <property name>\n" +
+    "Condition: <equals | not equals | contains | starts with | ends with | empty | not empty | greater | less | after | before | in the last __ days>\n" +
+    "Value: <value>\n" +
+    "\n" +
+    "# VIEWS\n" +
+    "View name: <short descriptive name>\n" +
+    "Show results as: <Table | List | Cards | Map>\n" +
+    "\n" +
+    "# FIELDS\n" +
+    "Fields to show (comma-separated): <file name, property1, property2, property3>\n" +
+    "\n" +
+    "Display names (optional):\n" +
+    "- <property> as <Label>\n" +
+    "- <property> as <Label>\n" +
+    "\n" +
+    "# FORMULAS (optional)\n" +
+    "Label: <name shown in the view>\n" +
+    "Description: <what should be calculated>\n" +
+    "\n" +
+    "# SUMMARIES (optional)\n" +
+    "Property: <property name>\n" +
+    "Calculation: <Sum | Average | Min | Max | Count>\n" +
+    "\n" +
+    "# ORDERING\n" +
+    "Sort by: <property name>\n" +
+    "Sort direction: <ascending | descending>\n" +
+    "Group by: <property name or leave empty>\n" +
+    "Limit: <number>";
 
   let selectedTemplate = null;
   let hasGenerated = false;
@@ -39,6 +76,7 @@
     blueprintTitle.textContent = "Base Blueprint";
     resetBtn.style.display = "none";
     queryInput.value = "";
+    queryInput.style.height = "";
     queryInput.placeholder = "Describe the query you want.";
     generateLabel.textContent = "Generate";
 
@@ -102,6 +140,9 @@
   templateBtn.addEventListener("click", () => {
     resetToInitial();
     queryInput.value = PROMPT_TEMPLATE;
+    // Expand textarea to show full template
+    queryInput.style.height = "auto";
+    queryInput.style.height = queryInput.scrollHeight + "px";
     templateHelp.classList.add("blueprint__help--visible");
     templateBtn.style.display = "none";
     queryInput.focus();

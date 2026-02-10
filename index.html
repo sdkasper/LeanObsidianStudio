@@ -71,29 +71,78 @@
           <div class="blueprint__title-actions">
             <button class="blueprint__template-btn" id="templateBtn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="21" x2="9" y2="9"/></svg>
-              Use template
+              Structured Prompt
             </button>
+            <span class="blueprint__info-icon" title="Use this prompt structure for best results.">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            </span>
             <button class="blueprint__reset" id="resetBtn" style="display:none;">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
               Reset
             </button>
           </div>
         </div>
-        <details class="blueprint__help" id="templateHelp">
-          <summary>How to use the prompt template</summary>
-          <ul>
-            <li>Start by defining a folder. Leave it empty to search the entire vault.</li>
-            <li>Add tag filters only if needed. Use "any" to match notes with at least one tag, "all" to require every tag.</li>
-            <li>Property filters are optional. Use one line per condition. For dates, you can write "after 2024-01-01" or "in the last 30 days".</li>
-            <li>Choose one layout: Table, List, Cards, or Map. Give it a name if you like.</li>
-            <li>List only the fields you want to see. Add display names to rename columns.</li>
-            <li>Computed fields let you add calculated columns &mdash; describe what you want in plain language.</li>
-            <li>Summaries add totals, averages, or counts at the bottom of a column.</li>
-            <li>Sorting, grouping, and limits are optional. Add them only when needed.</li>
-            <li>Leave any line empty to skip it.</li>
-            <li>You can also ignore this template and describe what you want in your own words.</li>
-          </ul>
-        </details>
+        <div class="blueprint__help" id="templateHelp">
+          <details class="blueprint__help-details">
+            <summary>How to use the prompt template</summary>
+            <div class="blueprint__help-body">
+              <h4>FOLDER <span class="blueprint__help-opt">(optional)</span></h4>
+              <ul>
+                <li>Enter a folder path only if you want to limit the results to a specific area of your vault.</li>
+                <li>If you leave the folder empty, the query will search the whole vault.</li>
+              </ul>
+              <h4>TAGS <span class="blueprint__help-opt">(optional)</span></h4>
+              <ul>
+                <li>You can include tags, exclude tags, or use both.</li>
+                <li>&ldquo;Tag matching&rdquo; controls how to handle multiple included tags:
+                  <ul>
+                    <li><strong>any</strong>: a note must have at least one of the tags</li>
+                    <li><strong>all</strong>: a note must have all the tags</li>
+                  </ul>
+                </li>
+              </ul>
+              <h4>PROPERTY FILTERS <span class="blueprint__help-opt">(optional)</span></h4>
+              <ul>
+                <li>Use them only if your notes have frontmatter properties you want to filter by.</li>
+                <li>Choose one condition per property.</li>
+                <li>Some conditions require a value (e.g., &ldquo;equals&rdquo;, &ldquo;contains&rdquo;, &ldquo;greater&rdquo;).</li>
+                <li>Some conditions do not need a value (e.g., &ldquo;empty&rdquo;, &ldquo;not empty&rdquo;).</li>
+              </ul>
+              <h4>VIEWS</h4>
+              <ul>
+                <li>Choose exactly one view type: Table, List, Cards, or Map.</li>
+                <li>The view name is only a label for you and helps identify the view later.</li>
+                <li>Changing the view type affects how fields are displayed &mdash; this is not a filter.</li>
+              </ul>
+              <h4>FIELDS</h4>
+              <ul>
+                <li>List only the fields you want to see in the result.</li>
+                <li>Fields can be file-based (like &ldquo;file name&rdquo;) or frontmatter properties.</li>
+                <li>Display names let you rename fields in the view without changing your notes.</li>
+              </ul>
+              <h4>FORMULAS <span class="blueprint__help-opt">(optional)</span></h4>
+              <ul>
+                <li>Use them to create calculated values that do not exist in your notes.</li>
+                <li>Describe what should be calculated in plain language.</li>
+              </ul>
+              <h4>SUMMARIES <span class="blueprint__help-opt">(optional)</span></h4>
+              <ul>
+                <li>They calculate aggregate results for a number property.</li>
+                <li>Choose one calculation type per property.</li>
+              </ul>
+              <h4>ORDERING <span class="blueprint__help-opt">(optional)</span></h4>
+              <ul>
+                <li>Sorting controls the order of results.</li>
+                <li>Grouping clusters results by a property.</li>
+                <li>Limiting restricts how many items are shown.</li>
+              </ul>
+              <h4>GENERAL</h4>
+              <ul>
+                <li>You do not need to fill in every section &mdash; delete what you don&rsquo;t need.</li>
+              </ul>
+            </div>
+          </details>
+        </div>
         <textarea
           id="queryInput"
           class="blueprint__textarea"
@@ -132,7 +181,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <span class="footer__version">Version 0.2.0</span>
+    <span class="footer__version">Version 0.2.1</span>
     <span class="footer__copy">&copy; Lean Obsidian Studio.</span>
     <a href="https://forms.cloud.microsoft/r/7h7c05F7PU" target="_blank" rel="noopener noreferrer" class="footer__feedback" id="feedbackBtn">Feedback</a>
   </footer>
