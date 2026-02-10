@@ -66,6 +66,69 @@
     <!-- Blueprint Section -->
     <section class="blueprint">
       <div class="blueprint__input">
+        <!-- Help Flyout Panel -->
+        <div class="blueprint__flyout" id="templateHelp">
+          <div class="blueprint__flyout-header">
+            <h3 class="blueprint__flyout-title">Prompt Guide</h3>
+            <button class="blueprint__flyout-close" id="flyoutCloseBtn" title="Close">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            </button>
+          </div>
+          <div class="blueprint__flyout-body">
+            <h4>FOLDER <span class="blueprint__help-opt">(optional)</span></h4>
+            <ul>
+              <li>Enter a folder path to limit the results to a specific area.</li>
+              <li>Leave empty to search the whole vault.</li>
+            </ul>
+            <h4>TAGS <span class="blueprint__help-opt">(optional)</span></h4>
+            <ul>
+              <li>Include tags, exclude tags, or both.</li>
+              <li>Tag matching:
+                <ul>
+                  <li><strong>any</strong> &mdash; note has at least one tag</li>
+                  <li><strong>all</strong> &mdash; note has every tag</li>
+                </ul>
+              </li>
+            </ul>
+            <h4>PROPERTY FILTERS <span class="blueprint__help-opt">(optional)</span></h4>
+            <ul>
+              <li>Filter by frontmatter properties. One condition per property.</li>
+              <li>Some conditions need a value (equals, contains, greater).</li>
+              <li>Some don&rsquo;t (empty, not empty).</li>
+            </ul>
+            <h4>VIEWS</h4>
+            <ul>
+              <li>Choose one: Table, List, Cards, or Map.</li>
+              <li>The view name is a label to identify the view.</li>
+            </ul>
+            <h4>FIELDS</h4>
+            <ul>
+              <li>List the fields to show in the result.</li>
+              <li>Can be file-based (file name) or frontmatter properties.</li>
+              <li>Display names rename fields without changing notes.</li>
+            </ul>
+            <h4>FORMULAS <span class="blueprint__help-opt">(optional)</span></h4>
+            <ul>
+              <li>Calculated values that don&rsquo;t exist in your notes.</li>
+              <li>Describe what to calculate in plain language.</li>
+            </ul>
+            <h4>SUMMARIES <span class="blueprint__help-opt">(optional)</span></h4>
+            <ul>
+              <li>Aggregate calculations for number properties.</li>
+              <li>One calculation type per property.</li>
+            </ul>
+            <h4>ORDERING <span class="blueprint__help-opt">(optional)</span></h4>
+            <ul>
+              <li>Sort, group, or limit results.</li>
+              <li>All ordering fields are optional.</li>
+            </ul>
+            <h4>GENERAL</h4>
+            <ul>
+              <li>Delete any section you don&rsquo;t need.</li>
+            </ul>
+          </div>
+        </div>
+
         <div class="blueprint__title-row">
           <h3 class="blueprint__title" id="blueprintTitle">Base Blueprint</h3>
           <div class="blueprint__title-actions">
@@ -97,65 +160,6 @@
         <div class="blueprint__placeholder" id="outputPlaceholder">
           <p>Your generated Base query will appear here.</p>
         </div>
-        <div class="blueprint__help" id="templateHelp" style="display:none;">
-          <h3 class="blueprint__help-title">How to use the prompt template</h3>
-          <div class="blueprint__help-body">
-            <h4>FOLDER <span class="blueprint__help-opt">(optional)</span></h4>
-            <ul>
-              <li>Enter a folder path only if you want to limit the results to a specific area of your vault.</li>
-              <li>If you leave the folder empty, the query will search the whole vault.</li>
-            </ul>
-            <h4>TAGS <span class="blueprint__help-opt">(optional)</span></h4>
-            <ul>
-              <li>You can include tags, exclude tags, or use both.</li>
-              <li>&ldquo;Tag matching&rdquo; controls how to handle multiple included tags:
-                <ul>
-                  <li><strong>any</strong>: a note must have at least one of the tags</li>
-                  <li><strong>all</strong>: a note must have all the tags</li>
-                </ul>
-              </li>
-            </ul>
-            <h4>PROPERTY FILTERS <span class="blueprint__help-opt">(optional)</span></h4>
-            <ul>
-              <li>Use them only if your notes have frontmatter properties you want to filter by.</li>
-              <li>Choose one condition per property.</li>
-              <li>Some conditions require a value (e.g., &ldquo;equals&rdquo;, &ldquo;contains&rdquo;, &ldquo;greater&rdquo;).</li>
-              <li>Some conditions do not need a value (e.g., &ldquo;empty&rdquo;, &ldquo;not empty&rdquo;).</li>
-            </ul>
-            <h4>VIEWS</h4>
-            <ul>
-              <li>Choose exactly one view type: Table, List, Cards, or Map.</li>
-              <li>The view name is only a label for you and helps identify the view later.</li>
-              <li>Changing the view type affects how fields are displayed &mdash; this is not a filter.</li>
-            </ul>
-            <h4>FIELDS</h4>
-            <ul>
-              <li>List only the fields you want to see in the result.</li>
-              <li>Fields can be file-based (like &ldquo;file name&rdquo;) or frontmatter properties.</li>
-              <li>Display names let you rename fields in the view without changing your notes.</li>
-            </ul>
-            <h4>FORMULAS <span class="blueprint__help-opt">(optional)</span></h4>
-            <ul>
-              <li>Use them to create calculated values that do not exist in your notes.</li>
-              <li>Describe what should be calculated in plain language.</li>
-            </ul>
-            <h4>SUMMARIES <span class="blueprint__help-opt">(optional)</span></h4>
-            <ul>
-              <li>They calculate aggregate results for a number property.</li>
-              <li>Choose one calculation type per property.</li>
-            </ul>
-            <h4>ORDERING <span class="blueprint__help-opt">(optional)</span></h4>
-            <ul>
-              <li>Sorting controls the order of results.</li>
-              <li>Grouping clusters results by a property.</li>
-              <li>Limiting restricts how many items are shown.</li>
-            </ul>
-            <h4>GENERAL</h4>
-            <ul>
-              <li>You do not need to fill in every section &mdash; delete what you don&rsquo;t need.</li>
-            </ul>
-          </div>
-        </div>
         <div class="blueprint__result" id="outputResult" style="display:none;">
           <div class="blueprint__result-header">
             <h3 class="blueprint__result-label">Base Generated</h3>
@@ -179,7 +183,7 @@
 
   <!-- Footer -->
   <footer class="footer">
-    <span class="footer__version">Version 0.2.2</span>
+    <span class="footer__version">Version 0.2.3</span>
     <span class="footer__copy">&copy; Lean Obsidian Studio.</span>
     <a href="https://forms.cloud.microsoft/r/7h7c05F7PU" target="_blank" rel="noopener noreferrer" class="footer__feedback" id="feedbackBtn">Feedback</a>
   </footer>

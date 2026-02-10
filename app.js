@@ -22,6 +22,7 @@
   const templatesSection = document.getElementById("templatesSection");
   const templateBtn = document.getElementById("templateBtn");
   const templateHelp = document.getElementById("templateHelp");
+  const flyoutCloseBtn = document.getElementById("flyoutCloseBtn");
 
   // Structured prompt template
   const PROMPT_TEMPLATE =
@@ -85,7 +86,7 @@
     cards.forEach((c) => c.classList.remove("card--selected"));
 
     templateBtn.style.display = "inline-flex";
-    templateHelp.style.display = "none";
+    templateHelp.classList.remove("blueprint__flyout--open");
 
     outputPlaceholder.style.display = "flex";
     outputResult.style.display = "none";
@@ -144,13 +145,17 @@
     queryInput.style.flex = "none";
     queryInput.style.height = "auto";
     queryInput.style.height = queryInput.scrollHeight + "px";
-    // Show help in output panel
-    outputPlaceholder.style.display = "none";
-    templateHelp.style.display = "flex";
+    // Show flyout help panel
+    templateHelp.classList.add("blueprint__flyout--open");
     // Show reset, hide template button
     resetBtn.style.display = "inline-flex";
     templateBtn.style.display = "none";
     queryInput.focus();
+  });
+
+  // Close flyout via X button
+  flyoutCloseBtn.addEventListener("click", () => {
+    templateHelp.classList.remove("blueprint__flyout--open");
   });
 
   // ------------------------------------------------
@@ -232,7 +237,7 @@
     generateLabel.textContent = "Update";
 
     templateBtn.style.display = "none";
-    templateHelp.style.display = "none";
+    templateHelp.classList.remove("blueprint__flyout--open");
 
     templatesSection.style.display = "";
   }

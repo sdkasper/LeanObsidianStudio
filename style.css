@@ -147,6 +147,7 @@ body {
 }
 
 .blueprint__input {
+  position: relative;
   background: var(--bg-secondary);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -230,31 +231,77 @@ body {
   opacity: 1;
 }
 
-/* --- Help Panel (in output area) --- */
-.blueprint__help {
-  flex: 1;
-  font-size: 0.78rem;
-  color: var(--text-secondary);
+/* --- Flyout Help Panel --- */
+.blueprint__flyout {
+  position: absolute;
+  top: 0;
+  right: calc(100% + 1rem);
+  width: 320px;
+  max-height: 100%;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
   overflow-y: auto;
+  opacity: 0;
+  transform: translateX(12px);
+  pointer-events: none;
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  z-index: 20;
 }
 
-.blueprint__help-title {
-  font-size: 0.95rem;
+.blueprint__flyout--open {
+  opacity: 1;
+  transform: translateX(0);
+  pointer-events: all;
+}
+
+.blueprint__flyout-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.75rem;
+}
+
+.blueprint__flyout-title {
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--accent);
   font-style: italic;
-  margin-bottom: 1rem;
 }
 
-.blueprint__help-body h4 {
+.blueprint__flyout-close {
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0.15rem;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s, background 0.2s;
+}
+
+.blueprint__flyout-close:hover {
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.blueprint__flyout-body {
+  font-size: 0.73rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
+
+.blueprint__flyout-body h4 {
   color: var(--text-heading);
-  font-size: 0.78rem;
+  font-size: 0.73rem;
   font-weight: 600;
-  margin-top: 0.85rem;
-  margin-bottom: 0.25rem;
+  margin-top: 0.7rem;
+  margin-bottom: 0.2rem;
 }
 
-.blueprint__help-body h4:first-child {
+.blueprint__flyout-body h4:first-child {
   margin-top: 0;
 }
 
@@ -264,18 +311,17 @@ body {
   font-style: italic;
 }
 
-.blueprint__help-body ul {
-  padding-left: 1.25rem;
-  line-height: 1.65;
-  margin-bottom: 0.15rem;
+.blueprint__flyout-body ul {
+  padding-left: 1.1rem;
+  margin-bottom: 0.1rem;
 }
 
-.blueprint__help-body li {
-  margin-bottom: 0.15rem;
+.blueprint__flyout-body li {
+  margin-bottom: 0.1rem;
 }
 
-.blueprint__help-body ul ul {
-  margin-top: 0.15rem;
+.blueprint__flyout-body ul ul {
+  margin-top: 0.1rem;
 }
 
 .blueprint__textarea {
@@ -525,6 +571,21 @@ body {
 
   .blueprint {
     grid-template-columns: 1fr;
+  }
+
+  .blueprint__flyout {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    right: auto;
+    transform: translate(-50%, -50%) scale(0.95);
+    width: min(90vw, 360px);
+    max-height: 80vh;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  }
+
+  .blueprint__flyout--open {
+    transform: translate(-50%, -50%) scale(1);
   }
 }
 
